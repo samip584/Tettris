@@ -22,9 +22,10 @@ with open("shapes", "r") as read_file:
     shapes = json.load(read_file)
 
 pygame.init()
-largeText = pygame.font.SysFont('norasi', 45)
-smallText = pygame.font.SysFont('ubuntucondensed',30)
+titleText = pygame.font.SysFont('norasi', 45)
+scoreText = pygame.font.SysFont('ubuntucondensed',30)
 homeText = pygame.font.SysFont('ubuntucondensed',45)
+helpText = pygame.font.SysFont('ubuntucondensed',17)
 screen = pygame.display.init()
 pygame.display.set_caption("Tetris")
 
@@ -40,7 +41,14 @@ class Piece():
 
 def main_screan():
 	global screen
+	global grid
+	global locked_positions
+
+	grid = []
+	locked_positions = {}
+
 	index = 0;
+	time.sleep(0.25)
 	game_mode = ['play game', 'exit']
 
 	screen = pygame.display.set_mode(size_of_screan)
@@ -53,11 +61,12 @@ def main_screan():
 
 	pygame.draw.rect(screen, (100,160,220), (12 * block_size, 14 * block_size, 8 * block_size, 4 * block_size ))
 	pygame.draw.rect(screen, (70,130,180), (12 * block_size, 14 * block_size, 8 * block_size, 4 * block_size ), 4)
-	TextSurf, TextRect = text_objects("TETRIS", largeText, (255,110,0))
+	TextSurf, TextRect = text_objects("TETRIS", titleText, (255,110,0))
 	TextRect.center = (16 * block_size, 16 * block_size)
 	screen.blit(TextSurf, TextRect)
 
 	while True:
+
 		for event in pygame.event.get():
 			if event.type ==pygame.QUIT:
 				sys.exit()
@@ -77,6 +86,7 @@ def main_screan():
 					game_screan()
 				elif index == 1:
 					sys.exit()
+
 			pygame.draw.rect(screen, (100,160,220), (block_size * (1.5 + index * 0.5), block_size * (2 + index * 5), (9 - index) * block_size, (4 - 1.5 * index) * block_size))
 			pygame.draw.rect(screen, (70,130,180), (block_size * 1.5, block_size * 2, 9 * block_size, 4 * block_size), 4)
 			pygame.draw.rect(screen, (70,130,180), (block_size * 2, block_size * 7, 8 * block_size, 2.5 * block_size), 4)
@@ -142,7 +152,8 @@ def game_screan():
 					current_piece.y += 1
 					if not valid_move(current_piece):
 						current_piece.y -= 1
-		
+				elif event.key == pygame.K_ESCAPE:
+					pause_screan()
 	    
 		
 	    #make color of grid change as peace moves
@@ -287,26 +298,102 @@ def display_score():
 	pygame.draw.rect(screen, (135,206,250), (12 * block_size, 10 * block_size , 8 * block_size, 2 * block_size ))
 	pygame.draw.rect(screen, (70,130,180), (12 * block_size, 10 * block_size - 2, 8 * block_size, 2 * block_size ), 4)
 
-	TextSurf, TextRect = text_objects("score", smallText, (70,130,180))
+	TextSurf, TextRect = text_objects("score", scoreText, (70,130,180))
 	TextRect.center = (14 * block_size, 9 * block_size - 4)
 	screen.blit(TextSurf, TextRect)
 	
-	TextSurf, TextRect = text_objects(str(score), smallText, (10,10,10))
+	TextSurf, TextRect = text_objects(str(score), scoreText, (10,10,10))
 	TextRect.center = (18 * block_size, 9 * block_size - 4)
 	screen.blit(TextSurf, TextRect)
 	
 
-	TextSurf, TextRect = text_objects("lines", smallText, (70,130,180))
+	TextSurf, TextRect = text_objects("lines", scoreText, (70,130,180))
 	TextRect.center = (14 * block_size - 5, 11 * block_size - 2)
 	screen.blit(TextSurf, TextRect)
 
-	TextSurf, TextRect = text_objects(str(lines), smallText, (10,10,10))
+	TextSurf, TextRect = text_objects(str(lines), scoreText, (10,10,10))
 	TextRect.center = (18 * block_size, 11 	* block_size - 2)
 	screen.blit(TextSurf, TextRect)
 	
+def pause_screan():
+	global screen
+	index = 0;
+	pause_option = ['resume','help', 'quit']
+	while True:
+		for event in pygame.event.get():
+			if event.type ==pygame.QUIT:
+				sys.exit()
+			pygame.draw.rect(screen, (135,206,250), (block_size - 2, block_size - 2, width_of_arena + 4, height_of_arena + 4 ))
+			pygame.draw.rect(screen, (70,130,180), (block_size - 2, block_size - 2, width_of_arena + 4, height_of_arena + 4 ), 4)
+			pygame.draw.rect(screen, (230,230,255), (block_size	* 2 , block_size * 2, width_of_arena - block_size * 2, height_of_arena - block_size * 2 ))
+			pygame.draw.rect(screen, (70,130,180), (block_size	* 2 , block_size * 2, width_of_arena - block_size * 2, height_of_arena - block_size * 2 ), 4)
 
+			key = pygame.key.get_pressed()
+			if key[pygame.K_DOWN]:
+				index = (index + 1) % 3
+				break
+			elif key[pygame.K_UP]:
+				temp_index = (index - 1)
+				if(temp_index < 0): temp_index = 2
+				index = temp_index
+				break
+			elif key[pygame.K_ESCAPE]:
+				return
+			elif key[pygame.K_RETURN]:
+				if index == 0:
+					return
+				if index == 1:
+					help_screen()
+				elif index == 2:
+					main_screan()
+
+			TextSurf, TextRect = text_objects("paused", homeText, (20,60,100))
+			TextRect.center = (block_size + width_of_arena / 2, 5 * block_size)
+			screen.blit(TextSurf, TextRect)
+			pygame.draw.rect(screen, (100,160,220), (block_size * 2.5, block_size * (8 + index * 4) , 7 * block_size, 2.5 * block_size))
+			pygame.draw.rect(screen, (70,130,180), (block_size * 2.5, block_size * 8, 7 * block_size, 2.5 * block_size), 4)
+			pygame.draw.rect(screen, (70,130,180), (block_size * 2.5, block_size * 12, 7 * block_size, 2.5 * block_size), 4)
+			pygame.draw.rect(screen, (70,130,180), (block_size * 2.5, block_size * 16, 7 * block_size, 2.5 * block_size), 4)
+			for option in pause_option:
+				TextSurf, TextRect = text_objects(option, homeText, (20,60,100))
+				TextRect.center = (block_size + width_of_arena / 2, 5 * block_size + (pause_option.index(option)+1) * 4 * block_size)
+				screen.blit(TextSurf, TextRect)
+			pygame.display.update()
+
+def help_screen():
+	global screen
+	pygame.draw.rect(screen, (230,230,255), (block_size	* 2 , block_size * 2, width_of_arena - block_size * 2, height_of_arena - block_size * 2 ))
+	pygame.draw.rect(screen, (70,130,180), (block_size	* 2 , block_size * 2, width_of_arena - block_size * 2, height_of_arena - block_size * 2 ), 4)
+	TextSurf, TextRect = text_objects("controls", homeText, (20,60,100))
+	TextRect.center = (block_size + width_of_arena / 2, 5 * block_size)
+	screen.blit(TextSurf, TextRect)
+	TextSurf, TextRect = text_objects("Left arrow - Move left", helpText, (20,60,100))
+	TextRect.center = (block_size + width_of_arena / 2, 10 * block_size)
+	screen.blit(TextSurf, TextRect)
+	TextSurf, TextRect = text_objects("Right arrow - Move right", helpText, (20,60,100))
+	TextRect.center = (block_size + width_of_arena / 2, 11 * block_size)
+	screen.blit(TextSurf, TextRect)
+	TextSurf, TextRect = text_objects("Up arrow - Rotate", helpText, (20,60,100))
+	TextRect.center = (block_size + width_of_arena / 2, 12 * block_size)
+	screen.blit(TextSurf, TextRect)
+	TextSurf, TextRect = text_objects("Down arrow - Soft drop", helpText, (20,60,100))
+	TextRect.center = (block_size + width_of_arena / 2, 13 * block_size)
+	screen.blit(TextSurf, TextRect)
+	TextSurf, TextRect = text_objects("Esc - Pause", helpText, (20,60,100))
+	TextRect.center = (block_size + width_of_arena / 2, 15 * block_size)
+	screen.blit(TextSurf, TextRect)
+	
+	pygame.display.update()
+
+	while True:
+		for event in pygame.event.get():
+			if event.type ==pygame.QUIT:
+				sys.exit()
+			key = pygame.key.get_pressed()
+			if key[pygame.K_ESCAPE]:
+				return
+			if key[pygame.K_RETURN]:
+				return
 
 if __name__ == "__main__":
 	main_screan()
-
-
