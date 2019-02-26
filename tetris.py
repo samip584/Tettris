@@ -26,6 +26,7 @@ titleText = pygame.font.SysFont('norasi', 45)
 scoreText = pygame.font.SysFont('ubuntucondensed',30)
 homeText = pygame.font.SysFont('ubuntucondensed',45)
 helpText = pygame.font.SysFont('ubuntucondensed',17)
+high_scoreText = pygame.font.SysFont('ubuntucondensed',20)
 screen = pygame.display.init()
 pygame.display.set_caption("Tetris")
 
@@ -65,6 +66,8 @@ def main_screan():
 	TextRect.center = (16 * block_size, 16 * block_size)
 	screen.blit(TextSurf, TextRect)
 
+
+
 	while True:
 
 		for event in pygame.event.get():
@@ -72,6 +75,7 @@ def main_screan():
 				sys.exit()
 			pygame.draw.rect(screen, (135,206,250), (block_size - 2, block_size - 2, width_of_arena + 4, height_of_arena + 4 ))
 			pygame.draw.rect(screen, (70,130,180), (block_size - 2, block_size - 2, width_of_arena + 4, height_of_arena + 4 ), 4)
+			display_highscore()
 			key = pygame.key.get_pressed()
 			if key[pygame.K_DOWN]:
 				index = (index + 1) % 2
@@ -180,6 +184,25 @@ def game_screan():
 			time.sleep(2)
 			main_screan()
 
+
+def display_highscore():
+	global screen
+	count = 0
+	pygame.draw.rect(screen, (70,130,180), (block_size * 2, block_size * 11, 8 * block_size, 9 * block_size), 4)
+	TextSurf, TextRect = text_objects("high scores", scoreText, (20,60,100))
+	TextRect.center = (block_size + width_of_arena / 2, 12 * block_size)
+	screen.blit(TextSurf, TextRect)
+	with open('scores') as json_file:
+		score_list = json.load(json_file)
+	for score in score_list:
+		TextSurf, TextRect = text_objects(score["name"], high_scoreText, (20,60,100)) 
+		TextRect.center = (block_size * 2 + TextRect.width / 2 + 5, (14 + count) * block_size)
+		screen.blit(TextSurf, TextRect)
+		TextSurf, TextRect = text_objects(str(score["score"]), high_scoreText, (20,60,100)) 
+		TextRect.center = (block_size * 10 - TextRect.width / 2 - 5, (14 + count) * block_size)
+		screen.blit(TextSurf, TextRect)
+		count += 1
+	pygame.display.update()
 
 
 def create_grid(locked_positions={}):
