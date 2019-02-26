@@ -49,7 +49,7 @@ def main_screan():
 	locked_positions = {}
 
 	index = 0;
-	time.sleep(0.25)
+	time.sleep(0.1)
 	game_mode = ['play game', 'exit']
 
 	screen = pygame.display.set_mode(size_of_screan)
@@ -66,16 +66,16 @@ def main_screan():
 	TextRect.center = (16 * block_size, 16 * block_size)
 	screen.blit(TextSurf, TextRect)
 
-
+	display_highscore()
 
 	while True:
 
 		for event in pygame.event.get():
 			if event.type ==pygame.QUIT:
 				sys.exit()
-			pygame.draw.rect(screen, (135,206,250), (block_size - 2, block_size - 2, width_of_arena + 4, height_of_arena + 4 ))
+			pygame.draw.rect(screen, (135,206,250), (block_size - 2, block_size - 2, width_of_arena, height_of_arena / 2 ))
 			pygame.draw.rect(screen, (70,130,180), (block_size - 2, block_size - 2, width_of_arena + 4, height_of_arena + 4 ), 4)
-			display_highscore()
+			
 			key = pygame.key.get_pressed()
 			if key[pygame.K_DOWN]:
 				index = (index + 1) % 2
@@ -181,8 +181,7 @@ def game_screan():
 		display_arena()
 
 		if check_defeat(locked_positions):
-			time.sleep(2)
-			main_screan()
+			defeat_screan()
 
 
 def display_highscore():
@@ -417,6 +416,54 @@ def help_screen():
 				return
 			if key[pygame.K_RETURN]:
 				return
+
+def defeat_screan():
+	global screen
+	name = "Samip"
+	count = 0
+	congrats = ["Congratulations!", "You defeated the", "high score no "]
+	pygame.draw.rect(screen, (135,206,250), (block_size - 2, block_size - 2, width_of_arena + 4, height_of_arena + 4 ))
+	pygame.draw.rect(screen, (70,130,180), (block_size - 2, block_size - 2, width_of_arena + 4, height_of_arena + 4 ), 4)
+	pygame.draw.rect(screen, (230,230,255), (block_size	* 2 , block_size * 2, width_of_arena - block_size * 2, height_of_arena - block_size * 2 ))
+	pygame.draw.rect(screen, (70,130,180), (block_size	* 2 , block_size * 2, width_of_arena - block_size * 2, height_of_arena - block_size * 2 ), 4)
+
+	TextSurf, TextRect = text_objects("Score :", homeText, (20,60,100))
+	TextRect.center = (block_size * 2 + TextRect.width / 2 + 5, 6 * block_size)
+	screen.blit(TextSurf, TextRect)
+	TextSurf, TextRect = text_objects(str(score), homeText, (20,60,100))
+	TextRect.center = (block_size * 2 + TextRect.width / 2 + 5, 8 * block_size)
+	screen.blit(TextSurf, TextRect)
+
+
+	with open('scores') as json_file:
+		score_list = json.load(json_file)
+	for scores in score_list:
+		if score > scores["score"]:
+			congrats[2] = congrats[2] + str(count+1)
+			i = 0
+			for text in congrats:
+				TextSurf, TextRect = text_objects(text, high_scoreText, (20,60,100))
+				TextRect.center = (block_size + width_of_arena / 2, (12 + i) * block_size)
+				screen.blit(TextSurf, TextRect)
+				i += 1
+			for i in range(4, count, -1):
+				score_list[i]["score"] = score_list[i-1]["score"]
+			score_list[count]["score"] = score
+			break
+		count += 1
+		
+	with open('scores', 'w') as outfile:
+		json.dump(score_list, outfile)
+
+		
+
+
+
+	pygame.display.update()
+	time.sleep(2)
+	main_screan()
+
+
 
 if __name__ == "__main__":
 	main_screan()
